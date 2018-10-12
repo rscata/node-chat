@@ -11,15 +11,36 @@ var io = socketIO(server);
 io.on('connection', (socket) => {
     console.log('New user connected');
 
+    // mesaj de la server catre cel care intra
     socket.emit('newMessage', {
-        from: 'John',
-        text: 'Hey. What is going on.',
-        createdAt: 123123
+        from: 'Admin',
+        text: 'Welcome to the chat app',
+        createdAt: new Date().getTime()
     });
+
+    // mesaj de la server catre toti clientii
+    socket.broadcast.emit('newMessage', {
+        from: 'Admin',
+        text: 'New user joined',
+        createdAt: new Date().getTime()
+    })
 
     // lisenner
     socket.on('createMessage', (message) => {
         console.log('createMessage', message);
+
+        io.emit('newMessage', {
+            from: message.from,
+            text: message.text,
+            createdAt: new Date().getTime()
+        }); 
+
+        // broadcast la toti, inafara de cel care trimite
+        // socket.broadcast.emit('newMessage', {
+        //     from: message.from,
+        //     text: message.text,
+        //     createdAt: new Date().getTime()
+        // });
     });
 
     socket.on('disconnect', () => {
