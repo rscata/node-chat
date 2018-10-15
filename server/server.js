@@ -20,10 +20,11 @@ io.on('connection', (socket) => {
     socket.broadcast.emit('newMessage', generateMessage('Admin', 'New user joined'));
 
     // lisenner
-    socket.on('createMessage', (message) => {
+    socket.on('createMessage', (message, callback) => {
         console.log('createMessage', message);
 
         io.emit('newMessage', generateMessage(message.from, message.text)); 
+        callback('This is from server');
 
         // broadcast la toti, inafara de cel care trimite
         // socket.broadcast.emit('newMessage', {
