@@ -4,6 +4,8 @@ const express = require('express');
 const socketIO = require('socket.io');
 
 const {generateMessage, generateLocationMessage} = require('./utils/message');
+const {isRealString} = require('./utils/validation');
+
 const publicPath = path.join(__dirname, '../public/');
 
 var app = express();
@@ -13,11 +15,22 @@ var io = socketIO(server);
 io.on('connection', (socket) => {
     console.log('New user connected');
 
-    // mesaj de la server catre cel care intra
-    socket.emit('newMessage', generateMessage('Admin', 'Welcome to the chat app'));
+    socket.on('join', (params, callback) => {
+        if (!isRealString(params.name) || !isRealString(params.room)) {
+            callback('Name and room name are required.');
+        }
 
-    // mesaj de la server catre toti clientii
-    socket.broadcast.emit('newMessage', generateMessage('Admin', 'New user joined'));
+        /** join room */
+        socket.join(params.room);
+
+        // mesaj de la server catre cel care intra
+        socket.emit('newMessage', generateMessage('Admin', 'Welcome to the chat app'));
+
+        // mesaj de la server catre toti clientii
+        socket.broadcast.to(params.room).emit('newMessage', generateMessage('Admin', `${params.name} joined`));
+
+        callback();
+    });
 
     // lisenner
     socket.on('createMessage', (message, callback) => {
